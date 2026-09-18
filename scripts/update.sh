@@ -18,7 +18,6 @@ if [ "${MYAPP_UPDATE_REEXECED:-0}" != "1" ]; then
     if [ -z "$LATEST_TAG" ]; then
         echo "No tags found. Falling back to main branch..."
         git -C "$REPO" checkout main
-        exec env MYAPP_UPDATE_REEXECED=1 bash "$REPO/scripts/update.sh" "$@"
     else 
         echo "Updating $CURRENT_TAG -> $LATEST_TAG"
         git -C "$REPO" checkout "$LATEST_TAG"
@@ -39,6 +38,6 @@ fi
 
 install -m 755 "$REPO/scripts/launcher.sh" "$HOME/.local/bin/InventorySystem"
 
-echo "Update complete. [Update Feature]"
+echo "Update complete."
 
 echo "Updated to $(git -C "$REPO" rev-parse --short HEAD)"
