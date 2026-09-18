@@ -1,0 +1,14 @@
+# Development Files
+*.log
+*.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+
+# VS Code
+.vscode/
+
+# venv
+.venv/
+venv/
