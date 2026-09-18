@@ -13,7 +13,6 @@ if (Test-Path "$AppDir\repo\.git") {
 }
 
 $LatestTag = git -C "$AppDir\repo" tag --sort=-v:refname | Select-Object -First 1
-Write-Host "Pulling latest version: $LatestTag"
 git -C "$AppDir\repo" checkout $LatestTag
 
 Write-Host "Setting up virtual environment..."
