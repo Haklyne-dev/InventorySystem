@@ -26,8 +26,8 @@ if ($LatestTag) {
 
 Write-Host "Setting up virtual environment..."
 python -m venv "$AppDir\venv"
-& "$AppDir\venv\Scripts\python.exe" -m pip install -r "$AppDir\repo\requirements.txt"
 & "$AppDir\venv\Scripts\python.exe" -m pip install --upgrade pip
+& "$AppDir\venv\Scripts\python.exe" -m pip install -r "$AppDir\repo\requirements.txt"
 
 Write-Host "Creating launcher script..."
 Copy-Item "$AppDir\repo\scripts\launcher.cmd" "$BinDir\InventorySystem.cmd" -Force

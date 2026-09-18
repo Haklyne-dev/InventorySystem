@@ -31,8 +31,8 @@ fi
 
 echo "Setting up virtual environment..."
 python3 -m venv "$APP_DIR/venv"
-"$APP_DIR/venv/bin/pip" install --upgrade pip
-"$APP_DIR/venv/bin/pip" install -r "$APP_DIR/repo/requirements.txt"
+"$APP_DIR/venv/bin/python" -m pip install --upgrade pip
+"$APP_DIR/venv/bin/python" -m pip install -r "$APP_DIR/repo/requirements.txt"
 
 echo "Creating launcher script..."
 cat > "$LAUNCHER" << 'EOF'
