@@ -37,4 +37,6 @@ fi
 
 install -m 755 "$REPO/scripts/launcher_template.sh" "$HOME/.local/bin/myapp"
 
+echo "Update complete. [TEST UPDATE FUNCTIONALITY]"
+
 echo "Updated to $(git -C "$REPO" rev-parse --short HEAD)"
