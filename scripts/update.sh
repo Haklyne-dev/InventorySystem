@@ -34,10 +34,10 @@ else
     VENV_BIN="$APP_DIR/venv/bin"
 fi
 
+echo "Updating virtual environment..."
 "$VENV_BIN/python" -m pip install --upgrade -r "$REPO/requirements.txt"
 
 install -m 755 "$REPO/scripts/launcher.sh" "$HOME/.local/bin/InventorySystem"
+echo "Launcher script updated. [$HOME/.local/bin/InventorySystem]"
 
-echo "Update complete. [TEST MESSAGE]"
-
-echo "Updated to $(git -C "$REPO" rev-parse --short HEAD)"
+echo "Updated $CURRENT_TAG -> $LATEST_TAG ($(git -C "$REPO" rev-parse --short HEAD))"
