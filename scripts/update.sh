@@ -15,6 +15,12 @@ if [ "${MYAPP_UPDATE_REEXECED:-0}" != "1" ]; then
         exit 0
     fi
 
+    if [ -z "$LATEST_TAG" ]; then
+        echo "No tags found. Falling back to main branch..."
+        git -C "$REPO" checkout main
+        exec env MYAPP_UPDATE_REEXECED=1 bash "$REPO/scripts/update.sh" "$@"
+    fi
+
     echo "Updating $CURRENT_TAG -> $LATEST_TAG"
     git -C "$REPO" checkout "$LATEST_TAG"
 
@@ -30,7 +36,5 @@ fi
 "$VENV_BIN/python" -m pip install --upgrade -r "$REPO/requirements.txt"
 
 install -m 755 "$REPO/scripts/launcher_template.sh" "$HOME/.local/bin/myapp"
-
-echo "Update complete."
 
 echo "Updated to $(git -C "$REPO" rev-parse --short HEAD)"
