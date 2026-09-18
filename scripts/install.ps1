@@ -1,5 +1,4 @@
 $ErrorActionPreference = "Stop"
-$ProgressPreference = "SilentlyContinue"
 
 $RepoUrl = "https://github.com/Haklyne-dev/InventorySystem.git"
 $AppDir  = "$env:LOCALAPPDATA\InventorySystem"
@@ -17,8 +16,13 @@ $LatestTag = git -C "$AppDir\repo" tag --sort=-v:refname | Select-Object -First 
 git -C "$AppDir\repo" checkout $LatestTag
 
 python -m venv "$AppDir\venv"
-& "$AppDir\venv\Scripts\python.exe" -m pip install -r "$AppDir\repo\requirements.txt"
-& "$AppDir\venv\Scripts\python.exe" -m pip install --upgrade pip
+Write-Progress -Activity "Installing Python Packages" -Status "Running pip install..." -PercentComplete -1
+& "$AppDir\venv\Scripts\python.exe" -m pip install -r "$AppDir\repo\requirements.txt" *>$null
+Write-Progress -Activity "Installing Python Packages" -Completed
+
+Write-Progress -Activity "Upgrading pip" -Status "Running pip install --upgrade pip..." -PercentComplete -1
+& "$AppDir\venv\Scripts\python.exe" -m pip install --upgrade pip *>$null
+Write-Progress -Activity "Upgrading pip" -Completed
 
 Copy-Item "$AppDir\repo\scripts\launcher.cmd" "$BinDir\InventorySystem.cmd" -Force
 
