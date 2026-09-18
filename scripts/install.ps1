@@ -13,8 +13,16 @@ if (Test-Path "$AppDir\repo\.git") {
     git clone $RepoUrl "$AppDir\repo"
 }
 
+git -C "$APP_DIR/repo" fetch --tags --all
+
 $LatestTag = git -C "$AppDir\repo" tag --sort=-v:refname | Select-Object -First 1
-git -C "$AppDir\repo" checkout $LatestTag
+if ($LatestTag) {
+    Write-Host "Tag found. Checking out: $LatestTag"
+    git -C "$AppDir\repo" checkout $LatestTag
+} else {
+    Write-Host "No tags found. Falling back to main..."
+    git -C "$AppDir\repo" checkout main
+}
 
 Write-Host "Setting up virtual environment..."
 python -m venv "$AppDir\venv"
