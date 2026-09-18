@@ -31,8 +31,16 @@ fi
 
 echo "Setting up virtual environment..."
 python3 -m venv "$APP_DIR/venv"
-"$APP_DIR/venv/bin/python" -m pip install --upgrade pip
-"$APP_DIR/venv/bin/python" -m pip install -r "$APP_DIR/repo/requirements.txt"
+
+# Determine the correct path to the virtual environment's Python executable
+if [ -d "$APP_DIR/venv/Scripts" ]; then
+    VENV_BIN="$APP_DIR/venv/Scripts"
+else
+    VENV_BIN="$APP_DIR/venv/bin"
+fi
+
+"$VENV_BIN/python" -m pip install --upgrade pip
+"$VENV_BIN/python" -m pip install -r "$APP_DIR/repo/requirements.txt"
 
 echo "Creating launcher script..."
 cat > "$LAUNCHER" << 'EOF'
