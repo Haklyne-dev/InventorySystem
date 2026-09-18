@@ -45,5 +45,11 @@ fi
 echo "Creating launcher script..."
 install -m 755 "$APP_DIR/repo/scripts/launcher.sh" "$LAUNCHER"
 
+echo "Adding launcher script to PATH..."
+if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.bashrc"; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+    echo "Added '$HOME/.local/bin' to PATH in .bashrc. Please restart your terminal or run 'source ~/.bashrc' to apply the changes."
+fi
+
 echo "Installed InventorySystem $LATEST_TAG"
 echo "Start the server by running 'InventorySystem' from the command line."
