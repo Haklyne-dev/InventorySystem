@@ -13,8 +13,10 @@ if (Test-Path "$AppDir\repo\.git") {
 }
 
 $LatestTag = git -C "$AppDir\repo" tag --sort=-v:refname | Select-Object -First 1
+Write-Host "Pulling latest version: $LatestTag"
 git -C "$AppDir\repo" checkout $LatestTag
 
+Write-Host "Setting up virtual environment..."
 python -m venv "$AppDir\venv"
 & "$AppDir\venv\Scripts\python.exe" -m pip install -r "$AppDir\repo\requirements.txt"
 & "$AppDir\venv\Scripts\python.exe" -m pip install --upgrade pip
