@@ -6,6 +6,7 @@ $BinDir  = "$env:LOCALAPPDATA\Microsoft\WindowsApps"
 
 New-Item -ItemType Directory -Force -Path $AppDir | Out-Null
 
+Write-Host "Pulling latest version..."
 if (Test-Path "$AppDir\repo\.git") {
     git -C "$AppDir\repo" fetch --tags --quiet
 } else {
@@ -20,7 +21,8 @@ python -m venv "$AppDir\venv"
 & "$AppDir\venv\Scripts\python.exe" -m pip install -r "$AppDir\repo\requirements.txt"
 & "$AppDir\venv\Scripts\python.exe" -m pip install --upgrade pip
 
+Write-Host "Creating launcher script..."
 Copy-Item "$AppDir\repo\scripts\launcher.cmd" "$BinDir\InventorySystem.cmd" -Force
 
 Write-Host "Installed InventorySystem $LatestTag"
-Write-Host "Start the server by running 'InventorySystem.cmd' from the command line."
+Write-Host "Start the server by running 'InventorySystem' from the command line."

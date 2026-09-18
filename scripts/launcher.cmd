@@ -14,13 +14,14 @@ if "%~1"=="update" (
 )
 
 cd /d "%APP_DIR%\repo\src"
-"%VENV_PY%" "%APP_DIR%\repo\src\main.py" %*
+"%VENV_PY%" "main.py" %*
 set "STATUS=%ERRORLEVEL%"
 
 if "%STATUS%"=="42" (
-    echo myapp requested an update, updating now...
+    echo Server requested an update, updating now...
     powershell -NoProfile -ExecutionPolicy Bypass -File "%APP_DIR%\repo\scripts\update.ps1"
-    "%VENV_PY%" "%APP_DIR%\repo\src\main.py" %*
+    cd /d "%APP_DIR%\repo\src"
+    "%VENV_PY%" "main.py" %*
     exit /b %ERRORLEVEL%
 )
 
