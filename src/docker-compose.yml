@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:18
+    container_name: my-postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: robotics_db  # <-- This automatically creates your database
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql  # <-- Fixed path for Postgres 18+
+
+volumes:
+  pgdata:

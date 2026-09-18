@@ -1,0 +1,9 @@
+fastapi
+sqlalchemy
+passlib
+qrcode
+uvicorn
+pillow
+bcrypt==4.3.0
+psycopg2
+reportlab

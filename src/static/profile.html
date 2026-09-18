@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventory Tracker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <ul class="nav-links">
+            <li><a href="/">Inventory</a></li>
+        </ul>
+        <div id="search-bar">
+            <input type="text" id="search-input" placeholder="Search parts..." />
+            <button id="search-button"><i class="bi bi-search"></i></button>
+        </div>
+        <div id="profile">
+            <img id="user-avatar" alt="Profile" />
+            <div id="profile-dropdown" class="dropdown">
+                <a href="/profile">Profile</a>
+                <a href="#" id="logout-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="popup" style="display: none;" id="api-key-popup">
+        <div class="modal">
+            <span class="close"><i class="bi bi-x"></i></span>
+            <h2>Generate API Key</h2>
+            <div id="api-key-details"></div>
+        </div>
+    </div>
+    <div class="flex-wrapper">
+        <div class="container left">
+            <img id="profile-image">
+            <h1 id="profile-name">Profile</h1>
+            <div id="profile-info"></div>
+            <div id="api-keys-section" style="display: none;">
+                <h2>API Keys</h2>
+                <button id="generate-api-key" style="display: none;">Generate New API Key</button>
+                <table id="api-keys-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="api-keys"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="container right">
+            <h2>Activity History</h2>
+            <table id="activity-history-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Part ID</th>
+                        <th>Timestamp</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="activity-history"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script src="/auth.js"></script>
+    <script src="/profile.js"></script>
+</body>
+
+</html>

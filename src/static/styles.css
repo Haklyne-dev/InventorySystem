@@ -1,0 +1,525 @@
+:root {
+  /* Colors */
+  --primary-color: #3b82f6;
+  --secondary-color: #64748b;
+  --bg-color: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --card-bg: #ffffff;
+  --loading-bg: #f1f5f9;
+  --border-color: #e2e8f0;
+  --accent-color: #fbbf24;
+  --error-color: #dc2626;
+  --success-color: #16a34a;
+  --warning-color: #f59e0b;
+
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #0f172a;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+    --loading-bg: #1a202c;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  box-sizing: border-box;
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  line-height: normal;
+  font-family: inherit;
+  font-size: inherit;
+  vertical-align: middle;
+  text-align: center;
+}
+button:hover {
+  background-color: #2563eb;
+}
+
+.button-link {
+  box-sizing: border-box;
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  line-height: normal;
+  font-family: inherit;
+  font-size: inherit;
+  vertical-align: middle;
+  text-align: center;
+}
+.button-link:hover {
+  background-color: #2563eb;
+  text-decoration: none;
+}
+
+form {
+  margin: var(--spacing-lg) 0;
+}
+
+form.auth-form {
+  max-width: 400px;
+}
+form.create-part-form {
+  max-width: 600px;
+}
+
+form .form-group {
+  width: 100%;
+  margin-top: var(--spacing-md);
+}
+
+form label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+}
+
+form input,
+form select,
+form textarea {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 100%;
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+form button {
+  margin-top: var(--spacing-md);
+  width: 100%;
+}
+
+form a {
+  display: inline-block;
+  margin-top: var(--spacing-sm);
+  color: var(--primary-color);
+}
+
+.flex-wrapper {
+  display: flex;
+}
+
+.flex-wrapper .container {
+  margin: var(--spacing-md);
+}
+
+.container {
+  max-width: 100%; /* Change from 1200px if you want full width */
+  margin: 0;
+  padding: var(--spacing-lg);
+  display: block; /* Ensure it's not restricted by flex/grid from a parent */
+}
+
+.error {
+  color: var(--error-color);
+  margin-top: var(--spacing-sm);
+}
+
+.success {
+  color: var(--success-color);
+  margin-top: var(--spacing-sm);
+}
+
+.warning {
+  color: var(--warning-color);
+  margin-top: var(--spacing-sm);
+}
+
+/* Navbar styles */
+.navbar {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: var(--spacing-lg);
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  display: inline-block;
+}
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+#profile {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+#profile-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: var(--spacing-lg);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: var(--spacing-sm) 0;
+  z-index: 1000;
+}
+
+#profile-dropdown a {
+  display: block;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  color: var(--text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+#profile-dropdown a:hover {
+  background-color: var(--border-color);
+}
+
+#user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--secondary-color);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+#profile-image {
+  width: 80%;
+  max-width: 200px;
+  height: auto;
+  border-radius: 50%;
+  background-color: var(--secondary-color);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--spacing-md);
+}
+
+table th,
+table td {
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-sm);
+  text-align: left;
+}
+
+#search-bar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+#search-input {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px 0 0 4px;
+  padding: var(--spacing-sm);
+  color: var(--text-primary);
+  width: 100%;
+}
+#search-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+#search-button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+
+.back-button {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+#part-qr {
+  display: block;
+  margin: var(--spacing-md) auto;
+  max-width: 200px;
+  width: 100%;
+}
+
+#suggestions-box {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  max-width: inherit;
+  width: 100%;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+#suggestions-box li {
+  padding: var(--spacing-sm);
+  cursor: pointer;
+}
+#suggestions-box li:hover {
+  background-color: var(--border-color);
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal {
+  background-color: var(--card-bg);
+  padding: var(--spacing-lg);
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+}
+
+.modal .close {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+pre {
+  background-color: var(--loading-bg);
+  padding: var(--spacing-sm);
+  border-radius: 4px;
+  overflow-x: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+pre button {
+  background-color: var(--card-bg);
+  color: #fff;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-sm);
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: auto; 
+}
+
+.tab-select {
+  display: flex;
+  margin-bottom: var(--spacing-md);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border-color); /* the full-width line lives here */
+}
+
+.tab-select ul {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  
+}
+
+.tab-select li {
+  margin-bottom: -2px; /* pulls the tab down onto that line */
+}
+
+.tab-select .tab-link {
+  display: block; /* or inline-block */
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px 4px 0 0;
+  color: var(--text-primary);
+  transition: background-color 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.tab-select .tab-link:hover {
+  background-color: var(--border-color);
+}
+
+.tab-select .tab-link.active {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--bg-color); /* paints over the ul's line */
+}
+
+.tab-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--bg-color); /* must match .active's bg for the illusion to work */
+}
+
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+
+.btn {
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  line-height: normal;
+  font-family: inherit;
+  font-size: inherit;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.btn-danger {
+  background-color: var(--error-color);
+}
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+.btn-group {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.onboarding-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.onboarding-content {
+  text-align: center;
+}
+
+/* Responsive Menu */
+@media (max-width: 768px) {
+  .nav-toggle {
+    display: block;
+  }
+
+  .nav-links {
+    display: none; /* Hidden on small screens */
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+    z-index: 1000;
+  }
+
+  /* Class to be toggled via JavaScript */
+  .nav-links.mobile-visible {
+    display: flex;
+  }
+}
