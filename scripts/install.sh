@@ -43,12 +43,7 @@ fi
 "$VENV_BIN/python" -m pip install -r "$APP_DIR/repo/requirements.txt"
 
 echo "Creating launcher script..."
-cat > "$LAUNCHER" << 'EOF'
-#!/usr/bin/env bash
-APP_DIR="$HOME/.local/share/InventorySystem"
-"$APP_DIR/venv/bin/python" "$APP_DIR/repo/src/main.py" "$@"
-EOF
-chmod +x "$LAUNCHER"
+install -m 755 "$APP_DIR/repo/scripts/launcher.sh" "$LAUNCHER"
 
 echo "Installed InventorySystem $LATEST_TAG"
 echo "Start the server by running 'InventorySystem' from the command line."
