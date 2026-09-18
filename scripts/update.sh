@@ -21,7 +21,13 @@ if [ "${MYAPP_UPDATE_REEXECED:-0}" != "1" ]; then
     exec env MYAPP_UPDATE_REEXECED=1 bash "$REPO/scripts/update.sh" "$@"
 fi
 
-"$APP_DIR/venv/bin/pip" install --upgrade -r "$REPO/requirements.txt"
+if [ -d "$APP_DIR/venv/Scripts" ]; then
+    VENV_BIN="$APP_DIR/venv/Scripts"
+else
+    VENV_BIN="$APP_DIR/venv/bin"
+fi
+
+"$VENV_BIN/python" -m pip install --upgrade -r "$REPO/requirements.txt"
 
 install -m 755 "$REPO/scripts/launcher_template.sh" "$HOME/.local/bin/myapp"
 
