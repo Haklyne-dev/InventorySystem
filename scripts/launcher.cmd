@@ -1,6 +1,6 @@
 @echo off
 
-set "APP_DIR=%LOCALAPPDATA%\myapp"
+set "APP_DIR=%LOCALAPPDATA%\InventorySystem"
 set "VENV_PY=%APP_DIR%\venv\Scripts\python.exe"
 
 if "%~1"=="--version" (
@@ -13,13 +13,14 @@ if "%~1"=="update" (
     exit /b %ERRORLEVEL%
 )
 
-"%VENV_PY%" "%APP_DIR%\repo\main.py" %*
+cd /d "%APP_DIR%\repo\src"
+"%VENV_PY%" "%APP_DIR%\repo\src\main.py" %*
 set "STATUS=%ERRORLEVEL%"
 
 if "%STATUS%"=="42" (
     echo myapp requested an update, updating now...
     powershell -NoProfile -ExecutionPolicy Bypass -File "%APP_DIR%\repo\scripts\update.ps1"
-    "%VENV_PY%" "%APP_DIR%\repo\main.py" %*
+    "%VENV_PY%" "%APP_DIR%\repo\src\main.py" %*
     exit /b %ERRORLEVEL%
 )
 

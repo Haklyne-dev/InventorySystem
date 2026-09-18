@@ -1,4 +1,5 @@
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
 
 $RepoUrl = "https://github.com/Haklyne-dev/InventorySystem.git"
 $AppDir  = "$env:LOCALAPPDATA\InventorySystem"
@@ -22,3 +23,4 @@ python -m venv "$AppDir\venv"
 Copy-Item "$AppDir\repo\scripts\launcher.cmd" "$BinDir\InventorySystem.cmd" -Force
 
 Write-Host "Installed InventorySystem $LatestTag"
+Write-Host "Start the server by running 'InventorySystem' from the command line."
