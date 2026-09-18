@@ -14,7 +14,7 @@ else
     git clone "$REPO_URL" "$APP_DIR/repo"
 fi
 
-LATEST_TAG=$(git -C "$APP_DIR/repo" tag --sort=-v:refname | head -n 1)
+LATEST_TAG=$(git -C "$APP_DIR/repo" tag --sort=-v:refname | head -n1)
 git -C "$APP_DIR/repo" checkout "$LATEST_TAG"
 
 echo "Setting up virtual environment..."
