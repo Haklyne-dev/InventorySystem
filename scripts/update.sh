@@ -40,4 +40,4 @@ echo "Updating virtual environment..."
 install -m 755 "$REPO/scripts/launcher.sh" "$HOME/.local/bin/InventorySystem"
 echo "Launcher script updated. [$HOME/.local/bin/InventorySystem]"
 
-echo "Updated $CURRENT_TAG -> $LATEST_TAG ($(git -C "$REPO" rev-parse --short HEAD))"
+echo "Updated to $(git -C "$REPO" rev-parse --short HEAD)"
