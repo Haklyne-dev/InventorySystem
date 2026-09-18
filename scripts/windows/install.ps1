@@ -16,7 +16,6 @@ $LatestTag = git -C "$AppDir\repo" tag --sort=-v:refname | Select-Object -First 
 git -C "$AppDir\repo" checkout $LatestTag
 
 python -m venv "$AppDir\venv"
-& "$AppDir\venv\Scripts\python.exe" -m pip install --upgrade pip
 & "$AppDir\venv\Scripts\python.exe" -m pip install -r "$AppDir\repo\requirements.txt"
 
 Copy-Item "$AppDir\repo\scripts\launcher.ps1" "$BinDir\InventorySystem.ps1" -Force
