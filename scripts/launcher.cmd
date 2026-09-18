@@ -1,0 +1,26 @@
+@echo off
+
+set "APP_DIR=%LOCALAPPDATA%\myapp"
+set "VENV_PY=%APP_DIR%\venv\Scripts\python.exe"
+
+if "%~1"=="--version" (
+    git -C "%APP_DIR%\repo" describe --tags --exact-match
+    exit /b 0
+)
+
+if "%~1"=="update" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%APP_DIR%\repo\scripts\update.ps1"
+    exit /b %ERRORLEVEL%
+)
+
+"%VENV_PY%" "%APP_DIR%\repo\main.py" %*
+set "STATUS=%ERRORLEVEL%"
+
+if "%STATUS%"=="42" (
+    echo myapp requested an update, updating now...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%APP_DIR%\repo\scripts\update.ps1"
+    "%VENV_PY%" "%APP_DIR%\repo\main.py" %*
+    exit /b %ERRORLEVEL%
+)
+
+exit /b %STATUS%
