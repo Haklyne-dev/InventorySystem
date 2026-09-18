@@ -39,6 +39,6 @@ fi
 
 install -m 755 "$REPO/scripts/launcher.sh" "$HOME/.local/bin/InventorySystem"
 
-echo "Update complete."
+echo "Update complete. [TEST UPDATE FUNCTIONALITY]"
 
 echo "Updated to $(git -C "$REPO" rev-parse --short HEAD)"
