@@ -19,12 +19,20 @@
         </div>
         <div class="onboarding-content" id="ob-account" style="display: none;">
             <h2>Account Setup</h2>
-            <p>Please enter your account details.</p>
+            <p>Let's get your account set up.</p>
             <form id="account-form">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required />
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required />
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required />
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" autocomplete="username" required />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" autocomplete="new-password" required />
+                </div>
                 <button type="submit">Next</button>
             </form>
         </div>
@@ -32,17 +40,21 @@
             <h2>Server Configuration</h2>
             <p>Configure your server settings.</p>
             <form id="server-form">
-                <label for="server-name">Server Name:</label>
-                <input type="text" id="server-name" name="server-name" required />
-                <label for="auto-update">Enable Auto-Updates:</label>
-                <input type="checkbox" id="auto-update" name="auto-update" />
+                <div class="form-group">
+                    <label for="server-name">Server Name:</label>
+                    <input type="text" id="server-name" name="server-name" required />
+                </div>
+                <div class="form-group checkbox-group">
+                    <label for="auto-update">Enable Auto-Updates:</label>
+                    <input type="checkbox" id="auto-update" name="auto-update" />
+                </div>
                 <button type="submit">Finish</button>
             </form>
         </div>
         <div class="onboarding-content" id="ob-loading" style="display: none;">
             <h2>Loading...</h2>
-            <div class="loader"></div>
             <p>Please wait while we set up your account and server.</p>
+            <div class="loader"></div>
         </div>
         <div class="onboarding-content" id="ob-complete" style="display: none;">
             <h2>Setup Complete</h2>

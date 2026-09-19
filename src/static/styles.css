@@ -116,6 +116,7 @@ form .form-group {
 form label {
   display: block;
   margin-bottom: var(--spacing-sm);
+  width: fit-content;
 }
 
 form input,
@@ -148,6 +149,45 @@ form a {
   color: var(--primary-color);
 }
 
+form input[type="checkbox"] {
+  flex: 0 0 auto;
+  min-width: 1rem;
+  width: 1rem;
+  height: 1rem;
+  box-sizing: border-box;
+  margin-right: var(--spacing-sm);
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  background-color: transparent;
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: all 0.2s ease;
+}
+
+form input[type="checkbox"]:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+form input[type="checkbox"]:checked::after {
+  content: "";
+  width: 1.3rem;
+  height: 1.3rem;
+  background-color: #fff;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+form .checkbox-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
 .flex-wrapper {
   display: flex;
 }
@@ -157,10 +197,10 @@ form a {
 }
 
 .container {
-  max-width: 100%; /* Change from 1200px if you want full width */
+  max-width: 100%;
   margin: 0;
   padding: var(--spacing-lg);
-  display: block; /* Ensure it's not restricted by flex/grid from a parent */
+  display: block;
 }
 
 .error {
@@ -393,7 +433,7 @@ pre button {
   padding: var(--spacing-sm) var(--spacing-sm);
   border-radius: 4px;
   cursor: pointer;
-  margin-left: auto; 
+  margin-left: auto;
 }
 
 .tab-select {
@@ -410,7 +450,6 @@ pre button {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  
 }
 
 .tab-select li {
@@ -492,11 +531,74 @@ pre button {
   justify-content: center;
   width: 100%;
   min-height: 100vh;
+  background: radial-gradient(color-mix(in oklab, var(--primary-color), black 50%), var(--bg-color));
 }
 
 .onboarding-content {
+  display: block;
   text-align: center;
 }
+
+.onboarding-content h1 {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-md);
+}
+.onboarding-content h2 {
+  font-size: 2.6rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.onboarding-content p {
+  font-size: 1.2rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+.onboarding-content form {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.onboarding-content form .form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.loader {
+  /* The track */
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-color);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden; /* Hides the sliding piece when it goes outside the track */
+}
+
+.loader::before {
+  /* The sliding piece */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%; /* The length of your sliding piece */
+  background-color: var(--primary-color);
+  border-radius: 4px;
+  
+  /* Running the infinite slide animation */
+  animation: slide 1.5s infinite linear;
+}
+
+@keyframes slide {
+  0% {
+    /* Starts completely hidden off the left edge of the track */
+    transform: translateX(-100%);
+  }
+  100% {
+    /* Ends completely hidden off the right edge of the track */
+    transform: translateX(250%);
+  }
+}
+
 
 /* Responsive Menu */
 @media (max-width: 768px) {
