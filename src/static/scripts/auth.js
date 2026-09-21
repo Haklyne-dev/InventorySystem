@@ -13,14 +13,10 @@ if (currentPath === "/login" || currentPath === "/register") {
         method: "GET",
         xhrFields: { withCredentials: true },
         success: function (data) {
-            // Already logged in! Redirect to dashboard.
             window.location.href = "/";
         },
         error: function () {
-            // Not logged in. Safe to show the login/register forms.
-
             document.body.classList.remove('loading');
-
         }
     });
 
@@ -82,8 +78,6 @@ if (currentPath === "/login" || currentPath === "/register") {
     }
 } 
 else if (currentPath === "/logout") {
-    // 2. We don't read the token string anymore. Just ping the logout endpoint.
-    // The backend should clear the HttpOnly cookie in its response.
     $.ajax({
         url: "/api/auth/logout",
         method: "POST",
@@ -93,14 +87,12 @@ else if (currentPath === "/logout") {
             window.location.href = "/login";
         },
         error: function () {
-            // Force user to login page anyway if logout route fails
             clearLocalCookie();
             window.location.href = "/login";
         }
     });
-} 
+}
 else {
-    // 3. Application Protected Dashboard Routes
     $.ajax({
         url: "/api/auth/me",
         method: "GET",

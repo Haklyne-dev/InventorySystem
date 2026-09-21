@@ -108,6 +108,7 @@ class LogoutRequest(BaseModel):
 class APIKeyCreate(BaseModel):
     name: str
 
+
 class APIKeyCreateResponse(BaseModel):
     id: int
     name: str
@@ -118,11 +119,47 @@ class APIKeyCreateResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class APIEvent(BaseModel):
+    id: int
+    api_key_id: int
+    endpoint: str
+    method: str
+    created_at: datetime
+    status_code: int
+    origin_ip: str
+
+    class Config:
+        from_attributes = True
+
+
 class APIKey(BaseModel):
     id: int
     name: str
     user_id: int
     created_at: datetime
+    api_events: list[APIEvent] = []
+
+    class Config:
+        from_attributes = True
+
+
+class OnboardingStatus(BaseModel):
+    onboarded: bool
+
+
+class InviteCodeCreate(BaseModel):
+    role: str
+    user_amount: int
+
+
+class InviteCode(BaseModel):
+    id: int
+    code: str
+    role: str
+    user_amount: int
+    expires_at: datetime
+    used: bool
 
     class Config:
         from_attributes = True

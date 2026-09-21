@@ -78,6 +78,7 @@ class InviteCode(Base):
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String, unique=True, nullable=False, index=True)
     role = Column(String, default="member", nullable=False)
+    user_amount = Column(Integer, default=1, nullable=False)
     created_at = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
@@ -96,9 +97,10 @@ class APIKey(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    api_events = relationship("APIEvent", back_populates="api_key")
+    api_events = relationship("APIEvent", back_populates="api_key", cascade="all, delete-orphan")
 
     user = relationship("User")
+
 
 class APIEvent(Base):
     __tablename__ = "api_events"

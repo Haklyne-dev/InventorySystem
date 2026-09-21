@@ -22,7 +22,7 @@
             <button id="search-button"><i class="bi bi-search"></i></button>
         </div>
         <div id="profile">
-            <img id="user-avatar" alt="Profile" />
+            <img id="user-avatar" alt="Profile" src="/images/avatar" />
             <div id="profile-dropdown" class="dropdown">
                 <a href="/profile">Profile</a>
                 <a href="#" id="logout-link">Logout</a>
@@ -44,7 +44,9 @@
                 <tbody id="parts-tbody"></tbody>
             </table>
         </div>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
     <script src="/app.js"></script>
     <script src="/auth.js"></script>
     <script src="/search.js"></script>

@@ -1,43 +1,39 @@
 window.addEventListener('auth-trigger', (event) => {
     const user = event.detail.user;
     if (user) {
-        if (window.location.pathname === "/profile") {
-            window.location.href = `/profile/${user.id}`
+        const urlID = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1);
+        if (urlID == user.id) {
+            displayUserProfile(user, true);
         }
         else {
-            const urlID = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1);
-            if (urlID == user.id) {
-                displayUserProfile(user);
+            if (user.role == "admin") {
+                $.ajax({
+                    url: "/api/users/" + urlID + "/full",
+                    method: "GET",
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    success: function (userData) {
+                        var isCurrentUser = (user.id === userData.id);
+                        displayUserProfile(userData, isCurrentUser);
+                    }
+                });
             }
             else {
-                if (user.role == "admin") {
-                    $.ajax({
-                        url: "/api/users/" + urlID + "/full",
-                        method: "GET",
-                        xhrFields: {
-                            withCredentials: true
-                        },
-                        success: function (userData) {
-                            isCurrentUser = (user.id === userData.id);
-                            displayUserProfile(userData, isCurrentUser);
-                        }
-                    });
-                }
-                else {
-                    $.ajax({
-                        url: "/api/users/" + urlID,
-                        method: "GET",
-                        xhrFields: {
-                            withCredentials: true
-                        },
-                        success: function (userData) {
-                            isCurrentUser = (user.id === userData.id);
-                            displayUserProfile(userData, isCurrentUser);
-                        }
-                    });
-                }
+                $.ajax({
+                    url: "/api/users/" + urlID,
+                    method: "GET",
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    success: function (userData) {
+                        var isCurrentUser = (user.id === userData.id);
+                        displayUserProfile(userData, isCurrentUser);
+                    }
+                });
             }
         }
+
     }
 });
 
@@ -48,13 +44,16 @@ function displayUserProfile(user, isCurrentUser = false) {
         $("#profile-info").append(`<p>Role: ${user.role}</p>`);
 
         $.ajax({
-            url: "/api/auth/api_keys",
+            url: "/api/api_keys/user/" + user.id,
             method: "GET",
             xhrFields: {
                 withCredentials: true
             },
             success: function (apiKeysData) {
                 $.each(apiKeysData, function (index, apiKey) {
+                    let timestamp = new Date(apiKey.created_at);
+                    let formattedTimestamp = timestamp.toLocaleString();
+                    apiKey.created_at = formattedTimestamp;
                     $("#api-keys").append(`<tr id="key-${apiKey.id}">
                     <td>${apiKey.name}</td>
                     <td>${apiKey.created_at}</td>
@@ -69,20 +68,9 @@ function displayUserProfile(user, isCurrentUser = false) {
     if (isCurrentUser) {
         $("#generate-api-key").show();
     }
-    $.ajax({
-        url: "/api/users/" + user.id + "/avatar",
-        method: "GET",
-        xhrFields: {
-            withCredentials: true
-        },
-        success: function (data) {
-            var avatarUrl = "data:image/png;base64," + data.image;
-            $("#profile-image").attr("src", avatarUrl);
-        },
-        error: function () {
-            // Handle profile update error
-        }
-    });
+    
+    let avatarUrl = "/images/avatar/" + user.id;
+    $("#profile-image").attr("src", avatarUrl);
 
     $.ajax({
         url: "/api/users/" + user.id + "/history",
@@ -119,7 +107,7 @@ $("#generate-api-key").click(function () {
         event.preventDefault();
         const apiKeyName = $("#api-key-name").val();
         $.ajax({
-            url: "/api/auth/api_keys/create",
+            url: "/api/api_keys/create",
             method: "POST",
             contentType: "application/json",
             data: JSON.stringify({ name: apiKeyName }),
@@ -127,6 +115,9 @@ $("#generate-api-key").click(function () {
                 withCredentials: true
             },
             success: function (newApiKey) {
+                let timestamp = new Date(newApiKey.created_at);
+                let formattedTimestamp = timestamp.toLocaleString();
+                newApiKey.created_at = formattedTimestamp;
                 $("#api-keys").append(`<tr id="key-${newApiKey.id}">
                     <td>${newApiKey.name}</td>
                     <td>${newApiKey.created_at}</td>
@@ -134,7 +125,7 @@ $("#generate-api-key").click(function () {
                 </tr>`);
                 $("#api-key-name").val("");
                 $("#api-key-details").html(`
-                    <h2>API Key Generated</h2>
+                    <h3 class="success">API Key Generated Successfully!</h3>
                     <p>New API Key:</p>
                     <pre>${newApiKey.key}<button id="copy-api-key" onclick="copyToClipboard('${newApiKey.key}')">Copy</button></pre>
                     <p class="warning">Please copy and save this key securely. You won't be able to see it again.</p>
@@ -150,7 +141,7 @@ $("#generate-api-key").click(function () {
 function deleteApiKey(apiKeyId) {
     if (confirm("Are you sure you want to delete this API key?")) {
         $.ajax({
-            url: "/api/auth/api_keys/" + apiKeyId + "/delete",
+            url: "/api/api_keys/" + apiKeyId,
             method: "DELETE",
             xhrFields: {
                 withCredentials: true

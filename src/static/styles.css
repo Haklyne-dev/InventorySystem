@@ -29,11 +29,36 @@
   }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  
+  @view-transition {
+    navigation: auto;
+  }
+
+  *:not(body):not(html):not(.navbar *,.navbar) {
+  box-sizing: border-box;
+  animation: fadeIn 0.25s ease-in-out;
+}
+}
+
 body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--bg-color);
   color: var(--text-primary);
+}
+
+body.loading {
+  visibility: hidden;
 }
 
 h1,
@@ -111,6 +136,7 @@ form.create-part-form {
 form .form-group {
   width: 100%;
   margin-top: var(--spacing-md);
+  max-width: inherit;
 }
 
 form label {
@@ -129,6 +155,11 @@ form textarea {
   box-sizing: border-box;
   max-width: 100%;
   min-width: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
 form input:focus,
@@ -188,6 +219,30 @@ form .checkbox-group {
   gap: var(--spacing-sm);
 }
 
+form select {
+  appearance: base-select;
+  padding: var(--spacing-sm);
+  height: 40px;
+}
+
+form select::picker(select) {
+  appearance: base-select;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+form select option {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  padding: calc(var(--spacing-sm) / 2) var(--spacing-sm);
+  font-size: 1rem;
+}
+
+form select option:hover {
+  background-color: var(--border-color);
+}
+
 .flex-wrapper {
   display: flex;
 }
@@ -223,16 +278,17 @@ form .checkbox-group {
   background-color: var(--card-bg);
   border-bottom: 1px solid var(--border-color);
   padding: var(--spacing-sm) var(--spacing-lg);
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 400px) minmax(0, 1fr);
   align-items: center;
   position: relative;
 }
 
 .nav-links {
+  justify-self: start;
   display: flex;
+  gap: var(--spacing-md);
   list-style: none;
-  gap: var(--spacing-lg);
   margin: 0;
   padding: 0;
 }
@@ -252,9 +308,8 @@ form .checkbox-group {
 }
 
 #profile {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+  justify-self: end;
+  position: relative;
 }
 
 #profile-dropdown {
@@ -295,7 +350,7 @@ form .checkbox-group {
 }
 
 #profile-image {
-  width: 80%;
+  width: 100%;
   max-width: 200px;
   height: auto;
   border-radius: 50%;
@@ -308,7 +363,6 @@ form .checkbox-group {
 }
 
 table {
-  width: 100%;
   border-collapse: collapse;
   margin-top: var(--spacing-md);
 }
@@ -316,13 +370,13 @@ table {
 table th,
 table td {
   border: 1px solid var(--border-color);
-  padding: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   text-align: left;
 }
 
 #search-bar {
+  justify-self: center;
   display: flex;
-  align-items: center;
   width: 100%;
   max-width: 400px;
 }
@@ -334,6 +388,8 @@ table td {
   padding: var(--spacing-sm);
   color: var(--text-primary);
   width: 100%;
+  height: 40px;
+  box-sizing: border-box;
 }
 #search-input:focus {
   border-color: var(--primary-color);
@@ -346,6 +402,8 @@ table td {
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: 0 4px 4px 0;
   cursor: pointer;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .back-button {
@@ -356,7 +414,6 @@ table td {
 
 #part-qr {
   display: block;
-  margin: var(--spacing-md) auto;
   max-width: 200px;
   width: 100%;
 }
@@ -449,6 +506,7 @@ pre button {
   display: flex;
   margin: 0;
   padding: 0;
+  margin-left: var(--spacing-md);
   box-sizing: border-box;
 }
 
@@ -599,6 +657,10 @@ pre button {
   }
 }
 
+.container.narrow {
+  max-width: 360px;
+  width: 25%;
+}
 
 /* Responsive Menu */
 @media (max-width: 768px) {

@@ -11,8 +11,8 @@
 </head>
 
 <body>
-    <div class="onboarding-container">
-        <div class="onboarding-content" id="ob-welcome">
+    <div class="onboarding-container" style="display:none;">
+        <div class="onboarding-content" id="ob-welcome" style="display:none;">
             <h1>Welcome</h1>
             <p>Let's get started.</p>
             <button id="start-onboarding">Start Onboarding</button>
@@ -36,30 +36,15 @@
                 <button type="submit">Next</button>
             </form>
         </div>
-        <div class="onboarding-content" id="ob-server" style="display: none;">
-            <h2>Server Configuration</h2>
-            <p>Configure your server settings.</p>
-            <form id="server-form">
-                <div class="form-group">
-                    <label for="server-name">Server Name:</label>
-                    <input type="text" id="server-name" name="server-name" required />
-                </div>
-                <div class="form-group checkbox-group">
-                    <label for="auto-update">Enable Auto-Updates:</label>
-                    <input type="checkbox" id="auto-update" name="auto-update" />
-                </div>
-                <button type="submit">Finish</button>
-            </form>
-        </div>
         <div class="onboarding-content" id="ob-loading" style="display: none;">
             <h2>Loading...</h2>
-            <p>Please wait while we set up your account and server.</p>
+            <p id="loading-text">Loading...</p>
             <div class="loader"></div>
         </div>
         <div class="onboarding-content" id="ob-complete" style="display: none;">
             <h2>Setup Complete</h2>
             <p>Your account and server have been successfully configured.</p>
-            <button id="go-to-dashboard">Go to Dashboard</button>
+            <a href="/" class="button-link">Go to Dashboard</a>
         </div>
     </div>
     <script src="/onboarding.js"></script>

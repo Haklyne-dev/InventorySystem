@@ -14,7 +14,7 @@ from fastapi.security import (
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 import models, schemas
 from database import engine, get_db
 import auth
@@ -25,10 +25,11 @@ import base64
 from enum import Enum
 import uvicorn
 import colorsys
-import hashlib, secrets, os, io
+import hashlib, io
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image as RLImage
 from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -42,21 +43,29 @@ security = HTTPBearer()
 
 ALLOWED_ORIGINS = ["http://localhost:8000", "https://inventory.ccshambots.com"]
 
+LoggingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 # Auth dependencies
 
 
 def get_current_user(
+    request: Request,
     access_token: str = Cookie(None),
     authorization: str = Header(None),
     db: Session = Depends(get_db),
 ):
     try:
-        return auth.resolve_current_user(
+        result = auth.resolve_current_user(
             db, models.Token, models.APIKey, access_token, authorization
         )
     except auth.AuthError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message
+        )
+
+    request.state.api_key_id = result.api_key_id
+    return result.user
 
 
 def verify_internal_origin(request: Request):
@@ -83,6 +92,37 @@ def awaiting_onboarding():
     if not users:
         return True
     return False
+
+
+# API Logging Middleware
+
+
+@app.middleware("http")
+async def log_api_key_usage(request: Request, call_next):
+    response = await call_next(request)
+ 
+    api_key_id = getattr(request.state, "api_key_id", None)
+    if api_key_id is not None:
+        endpoint = request.url.path
+ 
+        db = LoggingSessionLocal()
+        try:
+            db.add(
+                models.APIEvent(
+                    api_key_id=api_key_id,
+                    endpoint=endpoint,
+                    method=request.method,
+                    status_code=response.status_code,
+                    origin_ip=request.client.host if request.client else "unknown",
+                )
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+        finally:
+            db.close()
+ 
+    return response
 
 
 # CSS endpoint
@@ -183,8 +223,8 @@ def get_create_part():
 
 
 @app.get("/profile", include_in_schema=False)
-def get_profile():
-    return FileResponse("static/profile.html")
+def get_profile(user: models.User = Depends(get_current_user)):
+    return RedirectResponse(f"/profile/{user.id}")
 
 
 @app.get("/profile/{user_id}", include_in_schema=False)
@@ -243,14 +283,33 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    if awaiting_onboarding():
+        # If this is the first user, allow registration without an invite code
+        new_user = models.User(
+            name=user.name,
+            email=user.email,
+            role="admin",
+            hashed_password=auth.hash_password(user.password),
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return new_user
+
     invite_code = (
         db.query(models.InviteCode)
         .filter(models.InviteCode.code == user.invite_code)
         .first()
     )
 
-    if not invite_code or invite_code.used:
+    if not invite_code or invite_code.used or invite_code.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Invalid invite code")
+    
+    invite_code.user_amount -= 1
+    if invite_code.user_amount <= 0:
+        invite_code.used = True
+
+    db.add(invite_code)
 
     new_user = models.User(
         name=user.name,
@@ -258,6 +317,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         role=invite_code.role,
         hashed_password=auth.hash_password(user.password),
     )
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -374,8 +434,9 @@ def delete_account(
 
 @app.delete(
     "/api/auth/{user_id}",
-    dependencies=[Depends(require_admin)],
+    dependencies=[Depends(require_admin), Depends(verify_internal_origin)],
     tags=[Tags.auth],
+    include_in_schema=False,
 )
 def admin_delete_user(user_id: int, db: Session = Depends(get_db)):
     """Allows an admin to delete a user account by ID."""
@@ -390,26 +451,64 @@ def admin_delete_user(user_id: int, db: Session = Depends(get_db)):
 
 @app.post(
     "/api/auth/invite",
+    response_model=schemas.InviteCode,
     dependencies=[Depends(require_admin), Depends(verify_internal_origin)],
     tags=[Tags.auth],
     include_in_schema=False,
 )
-def create_invite_code(role: str, db: Session = Depends(get_db)):
+def create_invite_code(invite_code: schemas.InviteCodeCreate, db: Session = Depends(get_db)):
     """Allows an admin to create a new invite code with a specified role."""
-    if role not in ["admin", "member"]:
+    if invite_code.role not in ["admin", "member"]:
         raise HTTPException(status_code=400, detail="Invalid role")
 
     new_code = models.InviteCode(
-        code=auth.generate_invite_code(), role=role, expires_at=auth.code_expiry()
+        code=auth.generate_invite_code(), role=invite_code.role, expires_at=auth.code_expiry(), user_amount=invite_code.user_amount
     )
     db.add(new_code)
     db.commit()
     db.refresh(new_code)
-    return {
-        "code": new_code.code,
-        "role": new_code.role,
-        "expires_at": new_code.expires_at,
-    }
+    return new_code
+
+
+@app.get(
+    "/api/auth/invite_codes",
+    response_model=list[schemas.InviteCode],
+    dependencies=[Depends(require_admin)],
+    tags=[Tags.auth],
+    include_in_schema=False
+)
+def list_invite_codes(db: Session = Depends(get_db)):
+    """Allows an admin to list all invite codes."""
+    codes = db.query(models.InviteCode).all()
+    return codes
+
+
+@app.delete(
+    "/api/auth/invite_codes/{code_id}",
+    dependencies=[Depends(require_admin)],
+    tags=[Tags.auth],
+    include_in_schema=False
+)
+def delete_invite_code(code_id: int, db: Session = Depends(get_db)):
+    """Allows an admin to delete an invite code by ID."""
+    code = db.query(models.InviteCode).filter(models.InviteCode.id == code_id).first()
+    if not code:
+        raise HTTPException(status_code=404, detail="Invite code not found")
+    db.delete(code)
+    db.commit()
+    return {"detail": "Invite code deleted successfully"}
+
+
+@app.get(
+    "/api/onboarding/status",
+    response_model=schemas.OnboardingStatus,
+    dependencies=[Depends(verify_internal_origin)],
+    include_in_schema=False,
+)   
+def onboarding_status():
+    """Returns the onboarding status of the system."""
+    status = not awaiting_onboarding()
+    return {"onboarded": status}
 
 
 # User info and management endpoints
@@ -714,7 +813,7 @@ def restock_part(
 
 
 @app.delete(
-    "/api/parts/{part_id}/delete",
+    "/api/parts/{part_id}",
     dependencies=[Depends(get_current_user)],
     tags=[Tags.parts],
 )
@@ -734,9 +833,11 @@ def delete_part(
 
 
 @app.post(
-    "/api/auth/api_keys/create",
+    "/api/api_keys/create",
     response_model=schemas.APIKeyCreateResponse,
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
+    tags=[Tags.auth],
+    include_in_schema=False
 )
 def create_api_key(
     key: schemas.APIKeyCreate,
@@ -763,9 +864,11 @@ def create_api_key(
 
 
 @app.get(
-    "/api/auth/api_keys",
+    "/api/api_keys",
     response_model=list[schemas.APIKey],
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
+    tags=[Tags.auth],
+    include_in_schema=False
 )
 def list_api_keys(
     db: Session = Depends(get_db), user: models.User = Depends(get_current_user)
@@ -776,9 +879,31 @@ def list_api_keys(
 
 
 @app.get(
-    "/api/auth/api_keys/{api_key_id}",
+    "/api/api_keys/user/{user_id}",
+    response_model=list[schemas.APIKey],
+    dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
+    tags=[Tags.auth],
+    include_in_schema=False
+)
+def list_api_keys_by_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Lists all API keys for a specific user."""
+    if current_user.role != "admin" and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    api_keys = db.query(models.APIKey).filter(models.APIKey.user_id == user_id).all()
+    return api_keys
+
+
+@app.get(
+    "/api/api_keys/{api_key_id}",
     response_model=schemas.APIKey,
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
+    tags=[Tags.auth],
+    include_in_schema=False
 )
 def get_api_key(
     api_key_id: int,
@@ -797,8 +922,10 @@ def get_api_key(
 
 
 @app.delete(
-    "/api/auth/api_keys/{api_key_id}/delete",
+    "/api/api_keys/{api_key_id}",
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
+    tags=[Tags.auth],
+    include_in_schema=False
 )
 def delete_api_key(
     api_key_id: int,
@@ -932,7 +1059,7 @@ def get_part_qr(part_id: int, db: Session = Depends(get_db)):
 
 
 @app.get(
-    "/api/users/{user_id}/avatar",
+    "/images/avatar/{user_id}",
     include_in_schema=False,
     dependencies=[Depends(get_current_user)],
 )
@@ -974,7 +1101,16 @@ def get_user_avatar(user_id: int, db: Session = Depends(get_db)):
     image.save(buffer, format="PNG")
     buffer.seek(0)
 
-    return {"image": base64.b64encode(buffer.getvalue()).decode("utf-8")}
+    return StreamingResponse(buffer, media_type="image/png")
+
+
+@app.get(
+    "/images/avatar",
+    include_in_schema=False,
+    dependencies=[Depends(get_current_user)],
+)
+def get_current_user_avatar(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return get_user_avatar(current_user.id, db)
 
 
 @app.get(
@@ -983,120 +1119,104 @@ def get_user_avatar(user_id: int, db: Session = Depends(get_db)):
 )
 def generate_label_sheet(db: Session = Depends(get_db)):
     part_ids_list = [part.id for part in db.query(models.Part).all()]
-    pil_images = []
 
-    for part_id in part_ids_list:
-        part = db.query(models.Part).filter(models.Part.id == part_id).first()
-        if not part:
-            continue
+    output_pdf_path = "label_sheet.pdf"
+    generate_label_pdf(part_ids_list, output_pdf_path, db)
 
-        url = f"http://your-server-ip:8000/parts/{part_id}"
-        qr = qrcode.make(url, box_size=5).convert("RGB")
-        width, height = qr.size
-        new_image = Image.new("RGB", (width * 3, height), color="white")
-        draw = ImageDraw.Draw(new_image)
-        new_image.paste(qr, (0, 0))
-        draw.rounded_rectangle(
-            [(0, 0), (width * 3 - 1, height - 1)],
-            radius=20,
-            outline="black",
-            width=2,
-        )
+    return FileResponse(output_pdf_path, media_type="application/pdf")
 
-        title_font = ImageFont.truetype("arialbd.ttf", size=30)
-        id_font = ImageFont.truetype("arial.ttf", size=20)
 
-        name_wrapped, wrapped_width, wrapped_height = get_wrapped_text(
-            part.name, title_font, max_width=width * 2 - 20
-        )
+def generate_label_pdf(part_ids, output_pdf_path, db):
+    # Avery 5160 layout
+    COLUMNS_COUNT = 3
+    ROWS_COUNT = 10
+    LABELS_PER_PAGE = COLUMNS_COUNT * ROWS_COUNT
+    PAGE_SIZE = letter
 
-        draw.text((width + 10, 20), name_wrapped, fill="black", font=title_font)
+    LABEL_W = 2.625 * inch
+    LABEL_H = 1.0 * inch
+    MARGIN_LEFT = 0.1875 * inch
+    MARGIN_TOP = 0.5 * inch
+    PITCH_X = 2.75 * inch
+    PITCH_Y = 1.0 * inch
+
+    DPI = 300
+    LABEL_PX_W = round(LABEL_W / inch * DPI)
+    LABEL_PX_H = round(LABEL_H / inch * DPI)
+
+    def pt_to_px(pt):
+        return round(pt / 72 * DPI)
+
+    PAD = pt_to_px(6)
+    QR_SIZE = LABEL_PX_H - 2 * PAD
+    TEXT_X = PAD + QR_SIZE + PAD
+    TEXT_W = LABEL_PX_W - TEXT_X - PAD
+    TEXT_H = LABEL_PX_H - 2 * PAD
+
+    id_font = ImageFont.truetype("arial.ttf", size=pt_to_px(9))
+    id_line_height = round(pt_to_px(9) * 1.2)
+
+    def render_label(part):
+        url = f"http://your-server-ip:8000/parts/{part.id}"
+        qr = qrcode.make(url, box_size=5, border=1).convert("RGB")
+        qr = qr.resize((QR_SIZE, QR_SIZE), Image.NEAREST)
+
+        label = Image.new("RGB", (LABEL_PX_W, LABEL_PX_H), color="white")
+        draw = ImageDraw.Draw(label)
+        label.paste(qr, (PAD, PAD))
+
+        title_pt = 14
+        while True:
+            title_font = ImageFont.truetype("arialbd.ttf", size=pt_to_px(title_pt))
+            name_wrapped, _, wrapped_height = get_wrapped_text(
+                part.name, title_font, max_width=TEXT_W
+            )
+            if wrapped_height + PAD + id_line_height <= TEXT_H or title_pt <= 8:
+                break
+            title_pt -= 1
+
+        draw.text((TEXT_X, PAD), name_wrapped, fill="black", font=title_font)
         draw.text(
-            (width + 10, 40 + wrapped_height),
+            (TEXT_X, PAD + wrapped_height + PAD // 2),
             f"{part.location}   ID: {part.id}",
             fill="black",
             font=id_font,
         )
 
-        pil_images.append(new_image)
-
-    output_pdf_path = "label_sheet.pdf"
-    generate_label_pdf(pil_images, output_pdf_path)
-
-    return FileResponse(output_pdf_path, media_type="application/pdf")
-
-
-def generate_label_pdf(pil_images, output_pdf_path):
-    COLUMNS_COUNT = 3
-    PAGE_SIZE = letter
-    PAGE_MARGIN = 0.5 * inch
-    CELL_PADDING_HORIZONTAL = 0
-    CELL_PADDING_VERTICAL = 0
-
-    page_width, page_height = PAGE_SIZE
-    printable_width = page_width - (2 * PAGE_MARGIN)
-
-    doc = SimpleDocTemplate(
-        output_pdf_path,
-        pagesize=PAGE_SIZE,
-        leftMargin=PAGE_MARGIN,
-        rightMargin=PAGE_MARGIN,
-        topMargin=PAGE_MARGIN,
-        bottomMargin=PAGE_MARGIN,
-        title="Part Labels",
-    )
-
-    col_width = printable_width / COLUMNS_COUNT
-
-    temp_dir = "temp_pdf_render"
-    os.makedirs(temp_dir, exist_ok=True)
-
-    temp_paths = []
-    formatted_images = []
-
-    try:
-        for i, pil_img in enumerate(pil_images):
-            temp_path = os.path.join(temp_dir, f"temp_img_{i}.png")
-            pil_img.save(temp_path, format="PNG")
-            temp_paths.append(temp_path)
-
-            aspect_ratio = pil_img.width / pil_img.height
-
-            img_w = col_width - (CELL_PADDING_HORIZONTAL * 2)
-            img_h = img_w / aspect_ratio
-
-            img = RLImage(temp_path, width=img_w, height=img_h)
-            img.hAlign = "CENTER"
-            formatted_images.append(img)
-
-        grid_data = []
-        for i in range(0, len(formatted_images), COLUMNS_COUNT):
-            row = formatted_images[i : i + COLUMNS_COUNT]
-            while len(row) < COLUMNS_COUNT:
-                row.append("")
-            grid_data.append(row)
-
-        image_table = Table(grid_data, colWidths=[col_width] * COLUMNS_COUNT)
-        image_table.setStyle(
-            TableStyle(
-                [
-                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), CELL_PADDING_VERTICAL),
-                    ("TOPPADDING", (0, 0), (-1, -1), CELL_PADDING_VERTICAL),
-                    ("LEFTPADDING", (0, 0), (-1, -1), CELL_PADDING_HORIZONTAL),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), CELL_PADDING_HORIZONTAL),
-                ]
-            )
+        draw.rounded_rectangle(
+            [(2, 2), (LABEL_PX_W - 3, LABEL_PX_H - 3)],
+            radius=25,
+            outline="black",
+            width=3,
         )
-        doc.build([image_table])
+        return label
 
-    finally:
-        for path in temp_paths:
-            if os.path.exists(path):
-                os.remove(path)
-        if os.path.exists(temp_dir):
-            os.rmdir(temp_dir)
+    page_w, page_h = PAGE_SIZE
+    c = canvas.Canvas(output_pdf_path, pagesize=PAGE_SIZE)
+    c.setTitle("Part Labels")
+
+    c.setAuthor("Inventory Management System")
+    c.setSubject("Avery 5160 Label Sheet")
+
+    slot = 0
+    for part_id in part_ids:
+        part = db.query(models.Part).filter(models.Part.id == part_id).first()
+        if not part:
+            continue
+
+        if slot == LABELS_PER_PAGE:
+            c.showPage()
+            slot = 0
+
+        row, col = divmod(slot, COLUMNS_COUNT)
+        x = MARGIN_LEFT + col * PITCH_X
+        y = page_h - MARGIN_TOP - (row + 1) * PITCH_Y
+
+        c.drawImage(ImageReader(render_label(part)), x, y, width=LABEL_W, height=LABEL_H)
+        slot += 1
+        
+
+    c.save()
 
 
 uvicorn.run(app, host="0.0.0.0", port=8000)

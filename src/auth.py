@@ -109,7 +109,7 @@ def generate_api_key() -> str:
     return secrets.token_urlsafe(32)
 
 
-def resolve_user_from_api_key(db, api_key_model, authorization_header: str):
+def resolve_api_key_record(db, api_key_model, authorization_header: str):
     if not authorization_header.startswith("Bearer "):
         raise InvalidAuthHeaderError(
             "Invalid authorization header format. Use 'Bearer <key>'"
@@ -122,14 +122,28 @@ def resolve_user_from_api_key(db, api_key_model, authorization_header: str):
     if not db_api_key:
         raise InvalidAPIKeyError("Invalid API key")
 
-    return db_api_key.user
+    return db_api_key
+
+
+def resolve_user_from_api_key(db, api_key_model, authorization_header: str):
+    return resolve_api_key_record(db, api_key_model, authorization_header).user
+
+
+class AuthResult:
+    __slots__ = ("user", "api_key_id")
+
+    def __init__(self, user, api_key_id=None):
+        self.user = user
+        self.api_key_id = api_key_id
 
 
 def resolve_current_user(db, token_model, api_key_model, access_token, authorization):
     if access_token:
-        return resolve_user_from_session_token(db, token_model, access_token)
+        user = resolve_user_from_session_token(db, token_model, access_token)
+        return AuthResult(user=user, api_key_id=None)
     elif authorization:
-        return resolve_user_from_api_key(db, api_key_model, authorization)
+        api_key_record = resolve_api_key_record(db, api_key_model, authorization)
+        return AuthResult(user=api_key_record.user, api_key_id=api_key_record.id)
     else:
         raise NotAuthenticatedError("Not authenticated")
 

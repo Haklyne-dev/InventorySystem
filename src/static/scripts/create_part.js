@@ -19,9 +19,7 @@ window.addEventListener('auth-trigger', (event) => {
             $.ajax({
                 url: "/api/parts/create",
                 method: "POST",
-                xhrFields: {
-                    withCredentials: true
-                },
+                contentType: "application/json",
                 xhrFields: {
                     withCredentials: true
                 },
@@ -84,7 +82,7 @@ inputBox.addEventListener("focus", () => {
 inputBox.addEventListener("blur", () => {
     window.setTimeout(() => {
         resultBox.style.display = "none";
-    }, 200);
+    }, 350);
 });
 
 function selectInput(value) {

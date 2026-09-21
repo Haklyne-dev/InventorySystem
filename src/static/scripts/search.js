@@ -15,18 +15,20 @@ window.addEventListener('auth-trigger', (event) => {
             success: (data) => {
                 const partsTbody = $("#parts-tbody");
                 partsTbody.empty();
-                const filteredParts = data.filter(part => {
-                    return part.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        part.id.toString().includes(searchQuery) ||
-                        part.category.toLowerCase().includes(searchQuery.toLowerCase());
+                const fuse = new Fuse(data, {
+                    keys: ['name', 'description', 'category', 'location'],
+                    threshold: 0.3
                 });
+                const filteredParts = fuse.search(searchQuery);
+                console.log(filteredParts);
                 filteredParts.forEach(part => {
+                    item = part.item;
                     partsTbody.append(`
                         <tr>
-                            <td>${part.id}</td>
-                            <td><a href="/parts/${part.id}">${part.name}</a></td>
-                            <td>${part.quantity}</td>
-                            <td>${part.location}</td>
+                            <td>${item.id}</td>
+                            <td><a href="/parts/${item.id}">${item.name}</a></td>
+                            <td>${item.quantity}</td>
+                            <td>${item.location}</td>
                         </tr>
                     `);
                 });

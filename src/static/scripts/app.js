@@ -17,20 +17,20 @@ window.addEventListener('auth-trigger', (event) => {
         document.body.classList.remove('loading');
         $("#user-name").text(user.name);
         $("#user-email").text(user.email);
-        $.ajax({
-            url: "/api/users/" + user.id + "/avatar",
-            method: "GET",
-            xhrFields: {
-                withCredentials: true
-            },
-            success: function (data) {
-                var avatarUrl = "data:image/png;base64," + data.image;
-                $("#user-avatar").attr("src", avatarUrl);
-            },
-            error: function () {
-                // Handle profile update error
-            }
-        });
+        // $.ajax({
+        //     url: "/api/users/" + user.id + "/avatar",
+        //     method: "GET",
+        //     xhrFields: {
+        //         withCredentials: true
+        //     },
+        //     success: function (data) {
+        //         var avatarUrl = "data:image/png;base64," + data.image;
+        //         $("#user-avatar").attr("src", avatarUrl);
+        //     },
+        //     error: function () {
+        //         // Handle profile update error
+        //     }
+        // });
 
         if (user.role === "admin") {
             if ($("#admin-link").length) {

@@ -13,14 +13,16 @@
 <body>
     <nav class="navbar">
         <ul class="nav-links">
-            <li><a href="/">Inventory</a></li>
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/checkout">Checkout</a></li>
+            <li><a href="/admin" id="admin-link" style="display: none;">Admin</a></li>
         </ul>
         <div id="search-bar">
             <input type="text" id="search-input" placeholder="Search parts..." />
             <button id="search-button"><i class="bi bi-search"></i></button>
         </div>
         <div id="profile">
-            <img id="user-avatar" alt="Profile" />
+            <img id="user-avatar" alt="Profile" src="/images/avatar" />
             <div id="profile-dropdown" class="dropdown">
                 <a href="/profile">Profile</a>
                 <a href="#" id="logout-link">Logout</a>
@@ -39,15 +41,30 @@
     </div>
     <div class="tab-select">
         <ul>
-            <li><a class="tab-link active" data-tab="users">Users</a></li>
+            <li><a class="tab-link active" data-tab="parts">Parts</a></li>
+            <li><a class="tab-link" data-tab="users">Users</a></li>
+            <li><a class="tab-link" data-tab="invite-codes">Invite Codes</a></li>
             <li><a class="tab-link" data-tab="api-keys">API Keys</a></li>
             <li><a class="tab-link" data-tab="api-usage">API Usage</a></li>
         </ul>
     </div>
     <div class="tab-container">
+        <div class="tab-content" id="parts">
+            <h2>Parts</h2>
+            <a href="/create_part" class="button-link">Add New Part</a>
+            <table id="parts-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="parts-list"></tbody>
+            </table>
+        </div>
         <div class="tab-content" id="users">
             <h2>Users</h2>
-            <button id="invite" onclick="generateInviteCode()">Create Invite Code</button>
             <table id="users-table">
                 <thead>
                     <tr>
@@ -61,11 +78,29 @@
                 <tbody id="users-list"></tbody>
             </table>
         </div>
+        <div class="tab-content" id="invite-codes">
+            <h2>Invite Codes</h2>
+            <button id="invite" onclick="generateInviteCode()">Create Invite Code</button>
+            <table id="invite-codes-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Role</th>
+                        <th>User Amount</th>
+                        <th>Used</th>
+                        <th>Expires At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invite-codes-list"></tbody>
+            </table>
+        </div>
         <div class="tab-content" id="api-keys">
             <h2>API Keys</h2>
             <table id="api-keys-table">
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>Name</th>
                         <th>Created At</th>
                         <th>Owned By</th>
@@ -84,6 +119,7 @@
                         <th>API Key</th>
                         <th>Endpoint</th>
                         <th>Origin</th>
+                        <th>Method</th>
                         <th>Response Code</th>
                     </tr>
                 </thead>
