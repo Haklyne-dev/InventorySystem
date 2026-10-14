@@ -7,7 +7,7 @@ Write-Host "Warning: This will uninstall all aplication files"
 Write-Host "It will NOT delete the database, all data is preserved"
 
 $response = Read-Host "Do you want to proceed? (y/N)"
-        if ($response -ne 'n' -and $response -ne 'N') {
+        if ($response -ne 'y' -and $response -ne 'Y') {
             Write-Host "Aborted." -ForegroundColor Red
             exit 1
         }
