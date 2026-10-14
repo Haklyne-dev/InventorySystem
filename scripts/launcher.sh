@@ -9,12 +9,12 @@ else
     VENV_BIN="$APP_DIR/venv/bin"
 fi
 
-if [ "${1:-}" = "--version" || "${1:-}" = "-v" ]; then
+if [[ "${1:-}" = "--version" || "${1:-}" = "-v" ]]; then
     git -C "$APP_DIR/repo" describe --tags --always
     exit 0
 fi
 
-if [ "${1:-}" = "--help" || "${1:-}" = "-h" ]; then
+if [[ "${1:-}" = "--help" || "${1:-}" = "-h" ]]; then
     echo "Usage: InventorySystem [options]"
     echo "Options:"
     echo "  -h, --help     Display this help message"
