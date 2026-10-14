@@ -20,14 +20,9 @@ if ($response -ne 'y' -and$response -ne 'Y') {
     exit 1
 }
 
-Write-Host "Uninstalling launcher..."
-if (Test-Path $Launcher) {
-    Remove-Item -Path $Launcher -Force -ErrorAction SilentlyContinue
-}
+Write-Host "Scheduling complete cleanup..."
 
-Write-Host "Uninstalling application files..."
-# Spawns a background task to delete the app directory after exit, 
-# preventing file lock errors since the script runs from inside it.
-Start-Process powershell.exe -ArgumentList "-WindowStyle Hidden -Command `"Start-Sleep -Seconds 1; Remove-Item -Path '$AppDir' -Recurse -Force`""
+$cleanupScript = "Start-Sleep -Seconds 2; Remove-Item -Path '$AppDir' -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item -Path '$Launcher' -Force -ErrorAction SilentlyContinue"
+Start-Process powershell.exe -ArgumentList "-WindowStyle Hidden -Command `"$cleanupScript`""
 
 Write-Host "Finished uninstalling InventorySystem." -ForegroundColor Green
