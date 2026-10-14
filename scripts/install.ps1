@@ -16,7 +16,7 @@ if (Test-Path "$AppDir\repo\.git") {
     git clone $RepoUrl "$AppDir\repo"
 }
 
-git -C "$APP_DIR/repo" fetch --tags --all
+git -C "$AppDir/repo" fetch --tags --all
 
 $LatestTag = git -C "$AppDir\repo" tag --sort=-v:refname | Select-Object -First 1
 if ($LatestTag) {
