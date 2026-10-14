@@ -70,8 +70,8 @@ if (-not (Test-Path $BinDir)) {
     New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
 }
 
-Copy-Item -Path "$REPO\scripts\launcher.cmd" -Destination "$BinDir\InventorySystem.ps1" -Force
-Write-Host "Launcher script updated. [$BinDir\InventorySystem.ps1]"
+Copy-Item -Path "$REPO\scripts\launcher.cmd" -Destination "$BinDir\InventorySystem.cmd" -Force
+Write-Host "Launcher script updated. [$BinDir\InventorySystem.cmd]"
 
 $CommitHash = (git -C "$REPO" rev-parse --short HEAD).Trim()
 Write-Host "Updated to $CommitHash"
