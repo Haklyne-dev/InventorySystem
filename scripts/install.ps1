@@ -4,8 +4,7 @@ $RepoUrl = "https://github.com/Haklyne-dev/InventorySystem.git"
 $AppDir  = "$env:LOCALAPPDATA\InventorySystem"
 $BinDir  = "$env:LOCALAPPDATA\Microsoft\WindowsApps"
 
-Write-Host "$AppDir"
-Write-Host "$BinDir"
+Write-Host "Installing to: $AppDir"
 
 New-Item -ItemType Directory -Force -Path $AppDir | Out-Null
 
