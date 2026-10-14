@@ -18,6 +18,10 @@ if [ "${1:-}" = "update" ]; then
     exec bash "$APP_DIR/repo/scripts/update.sh"
 fi
 
+if [ "${1:-}" = "uninstall" ]; then
+    exec bash "$APP_DIR/repo/scripts/uninstall.sh"
+fi
+
 cd "$APP_DIR/repo/src"
 "$VENV_BIN/python" main.py "$@"
 status=$?

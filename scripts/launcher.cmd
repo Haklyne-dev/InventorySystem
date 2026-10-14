@@ -13,6 +13,11 @@ if "%~1"=="update" (
     exit /b %ERRORLEVEL%
 )
 
+if "%~1"=="uninstall" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%APP_DIR%\repo\scripts\uninstall.ps1"
+    exit /b 0
+)
+
 cd /d "%APP_DIR%\repo\src"
 "%VENV_PY%" "main.py" %*
 set "STATUS=%ERRORLEVEL%"

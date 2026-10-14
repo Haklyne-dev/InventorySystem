@@ -65,7 +65,7 @@ $VENV_PYTHON = "$APP_DIR\venv\Scripts\python.exe"
 Write-Host "Updating virtual environment..."
 & $VENV_PYTHON -m pip install --upgrade -r "$REPO\requirements.txt"
 
-$BinDir = "$HOME\.local\bin"
+$BinDir  = "$env:LOCALAPPDATA\Microsoft\WindowsApps"
 if (-not (Test-Path $BinDir)) {
     New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
 }
