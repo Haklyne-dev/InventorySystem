@@ -6,8 +6,14 @@ $REPO = "$APP_DIR\repo"
 if ($env:MYAPP_UPDATE_REEXECED -ne "1") {
     git -C "$REPO" fetch --tags --quiet
 
-    $CURRENT_TAG_RAW = git -C "$REPO" describe --tags --exact-match 2>$null
-    $CURRENT_TAG = if ($CURRENT_TAG_RAW) { $CURRENT_TAG_RAW.Trim() } else { "unknown" }
+    # Temporarily allow non-zero exit codes since missing an exact tag is expected
+    $oldPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    $CURRENT_TAG_RAW = git -C "$REPO" describe --tags --exact-match 2>&1
+    $gitExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $oldPreference
+
+    $CURRENT_TAG = if ($gitExitCode -eq 0 -and $CURRENT_TAG_RAW) { $CURRENT_TAG_RAW.ToString().Trim() } else { "unknown" }
     
     $LATEST_TAG_RAW = git -C "$REPO" tag --sort=-v:refname
     $LATEST_TAG = if ($LATEST_TAG_RAW) { ($LATEST_TAG_RAW | Select-Object -First 1).Trim() } else { $null }
