@@ -12,10 +12,10 @@ $response = Read-Host "Do you want to proceed? (y/N)"
             exit 1
         }
 
-Write-Host "Uninstalling $APP_DIR..."
-rm -r "$APP_DIR"
+Write-Host "Uninstalling $AppDir..."
+rm -r "$AppDir"
 
 Write-Host "Uninstalling Launcher[$BinDir/InventorySystem.cmd]..."
-rm -r "$BIN_DIR/InventorySystem.cmd"
+rm -r "$BinDir/InventorySystem.cmd"
 
 Write-Host "Finished uninstalling InventorySystem"
