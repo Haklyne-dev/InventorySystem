@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-AppDir = "$env:LOCALAPPDATA\InventorySystem"
+$AppDir = "$env:LOCALAPPDATA\InventorySystem"
 $Repo   = "$AppDir\repo"
  
 git -C $Repo fetch --tags --quiet
