@@ -4,9 +4,24 @@ $APP_DIR = "$env:LOCALAPPDATA\InventorySystem"
 $REPO = "$APP_DIR\repo"
 
 if ($env:MYAPP_UPDATE_REEXECED -ne "1") {
+    $localChanges = git -C "$REPO" status --porcelain 2>$null
+    if ($localChanges) {
+        Write-Host "Warning: You have local changes in the repository:" -ForegroundColor Yellow
+        git -C "$REPO" status -s
+        
+        $response = Read-Host "Would you like to overwrite local changes and continue? (y/N)"
+        if ($response -ne 'y' -and $response -ne 'Y') {
+            Write-Host "Update aborted." -ForegroundColor Red
+            exit 1
+        }
+        
+        Write-Host "Overwriting local changes..." -ForegroundColor Cyan
+        git -C "$REPO" reset --hard HEAD
+        git -C "$REPO" clean -fd
+    }
+
     git -C "$REPO" fetch --tags --quiet
 
-    # Temporarily allow non-zero exit codes since missing an exact tag is expected
     $oldPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     $CURRENT_TAG_RAW = git -C "$REPO" describe --tags --exact-match 2>&1
@@ -36,6 +51,13 @@ if ($env:MYAPP_UPDATE_REEXECED -ne "1") {
     $env:MYAPP_UPDATE_REEXECED = "1"
     & powershell.exe -ExecutionPolicy Bypass -File "$REPO\scripts\update.ps1" @args
     exit
+}
+
+$localChangesPost = git -C "$REPO" status --porcelain 2>$null
+if ($localChangesPost) {
+    Write-Host "Local changes detected during re-execution. Forcing reset..." -ForegroundColor Cyan
+    git -C "$REPO" reset --hard HEAD
+    git -C "$REPO" clean -fd
 }
 
 $VENV_PYTHON = "$APP_DIR\venv\Scripts\python.exe"

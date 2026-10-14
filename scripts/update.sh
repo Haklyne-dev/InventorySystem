@@ -5,6 +5,22 @@ APP_DIR="$HOME/.local/share/InventorySystem"
 REPO="$APP_DIR/repo"
 
 if [ "${MYAPP_UPDATE_REEXECED:-0}" != "1" ]; then
+    if [ -n "$(git -C "$REPO" status --porcelain)" ]; then
+        echo "Warning: You have local changes in the repository:"
+        git -C "$REPO" status -s
+        
+        read -p "Would you like to overwrite local changes and continue? (y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Update aborted."
+            exit 1
+        fi
+        
+        echo "Overwriting local changes..."
+        git -C "$REPO" reset --hard HEAD
+        git -C "$REPO" clean -fd
+    fi
+
     git -C "$REPO" fetch --tags --quiet
 
     CURRENT_TAG=$(git -C "$REPO" describe --tags --exact-match 2>/dev/null || echo "unknown")
@@ -26,6 +42,12 @@ if [ "${MYAPP_UPDATE_REEXECED:-0}" != "1" ]; then
     git -C "$REPO" pull --ff-only
 
     exec env MYAPP_UPDATE_REEXECED=1 bash "$REPO/scripts/update.sh" "$@"
+fi
+
+if [ -n "$(git -C "$REPO" status --porcelain)" ]; then
+    echo "Local changes detected during re-execution. Forcing reset..."
+    git -C "$REPO" reset --hard HEAD
+    git -C "$REPO" clean -fd
 fi
 
 if [ -d "$APP_DIR/venv/Scripts" ]; then
