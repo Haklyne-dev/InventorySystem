@@ -5,6 +5,8 @@ APP_DIR="$HOME/.local/share/InventorySystem"
 BIN_DIR="$HOME/.local/bin"
 LAUNCHER="$BIN_DIR/InventorySystem"
 
+echo "Installing to: $APP_DIR"
+
 mkdir -p "$APP_DIR" "$BIN_DIR"
 
 echo "Pulling latest version..."
