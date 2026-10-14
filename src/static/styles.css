@@ -39,15 +39,14 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  
-  @view-transition {
-    navigation: auto;
+  *:not(body):not(html)
+  :not(.navbar *, .navbar)
+  :not(.onboarding-container *)
+  :not(.onboarding-container)
+  :not(.loader *):not(.loader) {
+    box-sizing: border-box;
+    animation: fadeIn 0.25s ease-in-out;
   }
-
-  *:not(body):not(html):not(.navbar *,.navbar) {
-  box-sizing: border-box;
-  animation: fadeIn 0.25s ease-in-out;
-}
 }
 
 body {
@@ -55,10 +54,6 @@ body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--bg-color);
   color: var(--text-primary);
-}
-
-body.loading {
-  visibility: hidden;
 }
 
 h1,
@@ -307,6 +302,11 @@ form select option:hover {
   padding: 0;
 }
 
+img {
+  border-radius: 20px;
+}
+
+
 #profile {
   justify-self: end;
   position: relative;
@@ -351,11 +351,9 @@ form select option:hover {
 
 #profile-image {
   width: 100%;
+  aspect-ratio: 1 / 1;
   max-width: 200px;
-  height: auto;
   border-radius: 50%;
-  background-color: var(--secondary-color);
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -416,6 +414,7 @@ table td {
   display: block;
   max-width: 200px;
   width: 100%;
+  aspect-ratio: 1 / 1;
 }
 
 #suggestions-box {
@@ -641,7 +640,7 @@ pre button {
   width: 40%; /* The length of your sliding piece */
   background-color: var(--primary-color);
   border-radius: 4px;
-  
+
   /* Running the infinite slide animation */
   animation: slide 1.5s infinite linear;
 }
@@ -660,6 +659,48 @@ pre button {
 .container.narrow {
   max-width: 360px;
   width: 25%;
+}
+
+.vendor-link {
+  margin-top: var(--spacing-md);
+  display: grid;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  grid-template-columns: 2fr 6fr 1fr;
+}
+
+.vendor-link input {
+  min-width: 0;
+}
+
+.vendor-link button {
+  background-color: var(--error-color);
+  color: #fff;
+  margin: 0;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button.disabled {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+#part-vendor-links {
+  padding-left: var(--spacing-md);
+  margin-top: calc(var(--spacing-md) * -1);
+}
+
+#part-vendor-links a {
+  font-weight: bold;
 }
 
 /* Responsive Menu */

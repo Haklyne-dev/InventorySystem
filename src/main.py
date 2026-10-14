@@ -14,7 +14,7 @@ from fastapi.security import (
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker, selectinload
 import models, schemas
 from database import engine, get_db
 import auth
@@ -25,7 +25,7 @@ import base64
 from enum import Enum
 import uvicorn
 import colorsys
-import hashlib, io
+import hashlib, io, copy
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.lib.utils import ImageReader
@@ -41,7 +41,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 security = HTTPBearer()
 
-ALLOWED_ORIGINS = ["http://localhost:8000", "https://inventory.ccshambots.com"]
+ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "https://inventory.ccshambots.com",
+    "https://alyssa-deformed-emerald.ngrok-free.dev",
+]
 
 LoggingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -60,9 +64,7 @@ def get_current_user(
             db, models.Token, models.APIKey, access_token, authorization
         )
     except auth.AuthError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message)
 
     request.state.api_key_id = result.api_key_id
     return result.user
@@ -100,11 +102,11 @@ def awaiting_onboarding():
 @app.middleware("http")
 async def log_api_key_usage(request: Request, call_next):
     response = await call_next(request)
- 
+
     api_key_id = getattr(request.state, "api_key_id", None)
     if api_key_id is not None:
         endpoint = request.url.path
- 
+
         db = LoggingSessionLocal()
         try:
             db.add(
@@ -121,7 +123,7 @@ async def log_api_key_usage(request: Request, call_next):
             db.rollback()
         finally:
             db.close()
- 
+
     return response
 
 
@@ -175,6 +177,11 @@ def get_admin_js():
 @app.get("/onboarding.js", include_in_schema=False)
 def get_onboarding_js():
     return FileResponse("static/scripts/onboarding.js")
+
+
+@app.get("/edit_part.js", include_in_schema=False)
+def get_edit_part_js():
+    return FileResponse("static/scripts/edit_part.js")
 
 
 # Pages
@@ -235,6 +242,11 @@ def get_profile(user_id: int):
 @app.get("/onboarding", include_in_schema=False)
 def get_onboarding():
     return FileResponse("static/onboarding.html")
+
+
+@app.get("/edit_part", include_in_schema=False)
+def get_edit_part():
+    return FileResponse("static/edit_part.html")
 
 
 # Error Handler
@@ -302,9 +314,13 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         .first()
     )
 
-    if not invite_code or invite_code.used or invite_code.expires_at < datetime.now(timezone.utc):
+    if (
+        not invite_code
+        or invite_code.used
+        or invite_code.expires_at < datetime.now(timezone.utc)
+    ):
         raise HTTPException(status_code=400, detail="Invalid invite code")
-    
+
     invite_code.user_amount -= 1
     if invite_code.user_amount <= 0:
         invite_code.used = True
@@ -456,13 +472,18 @@ def admin_delete_user(user_id: int, db: Session = Depends(get_db)):
     tags=[Tags.auth],
     include_in_schema=False,
 )
-def create_invite_code(invite_code: schemas.InviteCodeCreate, db: Session = Depends(get_db)):
+def create_invite_code(
+    invite_code: schemas.InviteCodeCreate, db: Session = Depends(get_db)
+):
     """Allows an admin to create a new invite code with a specified role."""
     if invite_code.role not in ["admin", "member"]:
         raise HTTPException(status_code=400, detail="Invalid role")
 
     new_code = models.InviteCode(
-        code=auth.generate_invite_code(), role=invite_code.role, expires_at=auth.code_expiry(), user_amount=invite_code.user_amount
+        code=auth.generate_invite_code(),
+        role=invite_code.role,
+        expires_at=auth.code_expiry(),
+        user_amount=invite_code.user_amount,
     )
     db.add(new_code)
     db.commit()
@@ -475,7 +496,7 @@ def create_invite_code(invite_code: schemas.InviteCodeCreate, db: Session = Depe
     response_model=list[schemas.InviteCode],
     dependencies=[Depends(require_admin)],
     tags=[Tags.auth],
-    include_in_schema=False
+    include_in_schema=False,
 )
 def list_invite_codes(db: Session = Depends(get_db)):
     """Allows an admin to list all invite codes."""
@@ -487,7 +508,7 @@ def list_invite_codes(db: Session = Depends(get_db)):
     "/api/auth/invite_codes/{code_id}",
     dependencies=[Depends(require_admin)],
     tags=[Tags.auth],
-    include_in_schema=False
+    include_in_schema=False,
 )
 def delete_invite_code(code_id: int, db: Session = Depends(get_db)):
     """Allows an admin to delete an invite code by ID."""
@@ -504,7 +525,7 @@ def delete_invite_code(code_id: int, db: Session = Depends(get_db)):
     response_model=schemas.OnboardingStatus,
     dependencies=[Depends(verify_internal_origin)],
     include_in_schema=False,
-)   
+)
 def onboarding_status():
     """Returns the onboarding status of the system."""
     status = not awaiting_onboarding()
@@ -683,7 +704,12 @@ def create_part(
     current_user: models.User = Depends(require_admin),
 ):
     """Creates a new part and logs the creation event."""
-    db_part = models.Part(**part.model_dump())
+    part_data = part.model_dump()
+
+    nested_items = part_data.pop("vendor_links", [])
+    db_nested_items = [models.VendorLink(**item) for item in nested_items]
+
+    db_part = models.Part(**part_data, vendor_links=db_nested_items)
 
     if db.query(models.Part).filter(models.Part.name == db_part.name).first():
         raise HTTPException(
@@ -720,19 +746,60 @@ def update_part(
     current_user: models.User = Depends(require_admin),
 ):
     """Updates an existing part and logs the event."""
-    db_part = db.query(models.Part).filter(models.Part.id == part_id).first()
+    db_part = (
+        db.query(models.Part)
+        .options(selectinload(models.Part.vendor_links))
+        .filter(models.Part.id == part_id)
+        .first()
+    )
     if not db_part:
         raise HTTPException(status_code=404, detail="Part not found")
 
+    previous_values = copy.deepcopy(db_part)
+
     for key, value in part.model_dump(exclude_unset=True).items():
-        setattr(db_part, key, value)
+        if key == "vendor_links":
+            db_part.vendor_links.clear()
+            for item in value:
+                db_part.vendor_links.append(models.VendorLink(**item))
+        else:
+            setattr(db_part, key, value)
+
+    new_values = copy.deepcopy(db_part)
+
+    changes_string = ""
+
+    for field in part.model_dump(exclude_unset=True).keys():
+        if field == "vendor_links":
+            for i, (old_link, new_link) in enumerate(
+                zip(previous_values.vendor_links, new_values.vendor_links)
+            ):
+                if old_link.name != new_link.name or old_link.url != new_link.url:
+                    changes_string += f"Vendor Link {i + 1} changed from {old_link.name} ({old_link.url}) to {new_link.name} ({new_link.url}); "
+                elif len(previous_values.vendor_links) < len(new_values.vendor_links):
+                    added_links = new_values.vendor_links[len(previous_values.vendor_links):]
+                    for added_link in added_links:
+                        changes_string += f"Vendor Link added: {added_link.name} ({added_link.url}); "
+                elif len(previous_values.vendor_links) > len(new_values.vendor_links):
+                    removed_links = previous_values.vendor_links[len(new_values.vendor_links):]
+                    for removed_link in removed_links:
+                        changes_string += f"Vendor Link removed: {removed_link.name} ({removed_link.url}); "
+                
+
+        else:
+            old_value = getattr(previous_values, field)
+            new_value = getattr(new_values, field)
+            if old_value != new_value:
+                changes_string += f"{field} changed from {old_value} to {new_value}; "
+                
+
 
     # Add history event
     event = models.PartEvent(
         part_id=db_part.id,
         user_id=current_user.id,
         type=models.EventType.update,
-        note=f"Updated part details: {part.model_dump(exclude_unset=True)}",
+        note=f"Updated part details: {changes_string}",
     )
     db.add(event)
 
@@ -769,7 +836,7 @@ def checkout_part(
         user_id=current_user.id,
         type=models.EventType.checkout,
         quantity=quantity,
-        note=f"Checked out {quantity} units of part {db_part.name}",
+        note=f"Checked out {quantity} units of part {db_part.id} - {db_part.name}({db_part.part_number})",
     )
     db.add(event)
 
@@ -837,7 +904,7 @@ def delete_part(
     response_model=schemas.APIKeyCreateResponse,
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
     tags=[Tags.auth],
-    include_in_schema=False
+    include_in_schema=False,
 )
 def create_api_key(
     key: schemas.APIKeyCreate,
@@ -868,7 +935,7 @@ def create_api_key(
     response_model=list[schemas.APIKey],
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
     tags=[Tags.auth],
-    include_in_schema=False
+    include_in_schema=False,
 )
 def list_api_keys(
     db: Session = Depends(get_db), user: models.User = Depends(get_current_user)
@@ -883,7 +950,7 @@ def list_api_keys(
     response_model=list[schemas.APIKey],
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
     tags=[Tags.auth],
-    include_in_schema=False
+    include_in_schema=False,
 )
 def list_api_keys_by_user(
     user_id: int,
@@ -903,7 +970,7 @@ def list_api_keys_by_user(
     response_model=schemas.APIKey,
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
     tags=[Tags.auth],
-    include_in_schema=False
+    include_in_schema=False,
 )
 def get_api_key(
     api_key_id: int,
@@ -925,7 +992,7 @@ def get_api_key(
     "/api/api_keys/{api_key_id}",
     dependencies=[Depends(get_current_user), Depends(verify_internal_origin)],
     tags=[Tags.auth],
-    include_in_schema=False
+    include_in_schema=False,
 )
 def delete_api_key(
     api_key_id: int,
@@ -1109,8 +1176,19 @@ def get_user_avatar(user_id: int, db: Session = Depends(get_db)):
     include_in_schema=False,
     dependencies=[Depends(get_current_user)],
 )
-def get_current_user_avatar(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_current_user_avatar(
+    current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)
+):
     return get_user_avatar(current_user.id, db)
+
+
+@app.get(
+    "/images/placeholder.png",
+    include_in_schema=False,
+)
+def get_placeholder_image():
+    IMAGE_PATH = "static/images/placeholder.png"
+    return FileResponse(IMAGE_PATH, media_type="image/png")
 
 
 @app.get(
@@ -1212,9 +1290,10 @@ def generate_label_pdf(part_ids, output_pdf_path, db):
         x = MARGIN_LEFT + col * PITCH_X
         y = page_h - MARGIN_TOP - (row + 1) * PITCH_Y
 
-        c.drawImage(ImageReader(render_label(part)), x, y, width=LABEL_W, height=LABEL_H)
+        c.drawImage(
+            ImageReader(render_label(part)), x, y, width=LABEL_W, height=LABEL_H
+        )
         slot += 1
-        
 
     c.save()
 

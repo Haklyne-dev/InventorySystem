@@ -42,7 +42,7 @@ window.addEventListener('auth-trigger', (event) => {
                     const partItem = $("<tr></tr>");
                     partItem.append(`<td>${part.id}</td>`);
                     partItem.append(`<td><a href="/parts/${part.id}">${part.name}</a></td>`);
-                    partItem.append(`<td class="btn-group"><button class="btn btn-danger" onclick="deletePart(${part.id})">Delete</button></td>`);
+                    partItem.append(`<td class="btn-group"><button class="btn btn-danger" onclick="deletePart(${part.id})">Delete</button><a class="button-link" href="/edit_part?id=${part.id}">Edit</a></td>`);
                     partsList.append(partItem);
                 });
             }
@@ -188,13 +188,17 @@ function generateInviteCode() {
     const content = $("#invite-code-details");
     content.html(`
         <form id="invite-code-form">
-            <label for="role">Select Role:</label>
-            <select id="role" name="role">
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-            </select>
-            <label for="user_amount">Number of Users:</label>
-            <input type="number" id="user_amount" name="user_amount" min="1" value="1" required>
+            <div class="form-group">
+                <label for="role">Select Role:</label>
+                <select id="role" name="role">
+                    <option value="member">Member</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="user_amount">Number of Users:</label>
+                <input type="number" id="user_amount" name="user_amount" min="1" value="1" required>
+            </div>
             <button type="submit">Generate Invite Code</button>
         </form>
         `);

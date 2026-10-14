@@ -18,7 +18,7 @@
             <button id="search-button"><i class="bi bi-search"></i></button>
         </div>
         <div id="profile">
-            <img id="user-avatar" alt="Profile" src="/images/avatar" />
+            <img  onerror="this.src='/images/placeholder.png'" id="user-avatar" alt="Profile" src="/images/avatar" />
             <div id="profile-dropdown" class="dropdown">
                 <a href="/profile">Profile</a>
                 <a href="#" id="logout-link">Logout</a>
@@ -49,6 +49,21 @@
                 <ul id="suggestions-box" style="display: none;"></ul>
             </div>
 
+            <div class="form-group">
+                <label for="part-number">Part Number:</label>
+                <input type="text" id="part-number" name="part_number" />
+            </div>
+            
+            <div class="form-group" id="vendor-links">
+                <label>Vendor Links:</label>
+                <div class="vendor-link">
+                    <input type="text" name="vendor_name[]" placeholder="Vendor Name" />
+                    <input type="url" name="vendor_url[]" placeholder="Vendor URL" />
+                    <button type="button" class="disabled">Remove</button>
+                </div>
+                <button type="button" onclick="addVendorLink()" id="new-vendor-button">Add Vendor Link</button>
+            </div>
+                
             <div class="form-group">
                 <label for="part-description">Description:</label>
                 <textarea id="part-description" name="description"></textarea>

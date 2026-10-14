@@ -13,11 +13,18 @@ window.addEventListener('auth-trigger', (event) => {
             },
             success: (data) => {
                 // Handle successful response
+                console.log('Part details:', data);
+
                 $('#part-name').text(data.name);
                 $('#part-id').text(data.id);
                 $('#part-quantity').text(data.quantity);
                 $('#part-location').text(data.location);
                 $('#part-category').text(data.category);
+                $('#part-number').text(data.part_number);
+                $('#part-vendor-links').empty();
+                $.each(data.vendor_links, function (index, vendorLink) {
+                    $('#part-vendor-links').append(`<li><a href="${vendorLink.url}" target="_blank">${vendorLink.name}</a></li>`);
+                });
                 $('#part-description').html("<strong>Description:</strong><br> " + data.description);
 
                 $.each(data.history, function (index, historyItem) {

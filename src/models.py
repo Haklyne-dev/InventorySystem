@@ -12,6 +12,17 @@ class EventType(enum.Enum):
     create = "create"
 
 
+class VendorLink(Base):
+    __tablename__ = "vendor_links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    part_id = Column(Integer, ForeignKey("parts.id"), nullable=False)
+    name = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+
+    part = relationship("Part", back_populates="vendor_links")
+
+
 class Part(Base):
     __tablename__ = "parts"
 
@@ -21,7 +32,11 @@ class Part(Base):
     location = Column(String, nullable=True)
     category = Column(String, nullable=True)
     description = Column(String, nullable=True)
-    min_quantity = Column(Integer, default=0, nullable=False)
+    part_number = Column(String, nullable=True)
+
+    vendor_links = relationship(
+        "VendorLink", back_populates="part", cascade="all, delete-orphan"
+    )
 
     history = relationship(
         "PartEvent", back_populates="part", cascade="all, delete-orphan"
@@ -97,7 +112,9 @@ class APIKey(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
-    api_events = relationship("APIEvent", back_populates="api_key", cascade="all, delete-orphan")
+    api_events = relationship(
+        "APIEvent", back_populates="api_key", cascade="all, delete-orphan"
+    )
 
     user = relationship("User")
 

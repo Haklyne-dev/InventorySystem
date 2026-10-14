@@ -3,6 +3,9 @@ var categories = [];
 window.addEventListener('auth-trigger', (event) => {
     const user = event.detail.user;
     if (user) {
+        if (user.role !== "admin") {
+            window.location.href = "/";
+        }
         $(".create-part-form").on("submit", function (e) {
             e.preventDefault();
             const partData = {
@@ -11,7 +14,12 @@ window.addEventListener('auth-trigger', (event) => {
                 location: $("#part-location").val(),
                 category: $("#category").val(),
                 description: $("#part-description").val(),
-                min_quantity: parseInt($("#min-quantity").val()) || 0,
+                part_number: $("#part-number").val(),
+                vendor_links: Array.from(document.querySelectorAll(".vendor-link")).map(linkDiv => {
+                    const name = linkDiv.querySelector("input[name='vendor_name[]']").value;
+                    const url = linkDiv.querySelector("input[name='vendor_url[]']").value;
+                    return { name, url };
+                })
             };
 
             console.log("Part data to be sent:", partData); // Log the part data before sending
@@ -88,4 +96,22 @@ inputBox.addEventListener("blur", () => {
 function selectInput(value) {
     inputBox.value = value;
     resultBox.innerHTML = "";
+}
+
+function addVendorLink() {
+
+    const newLinkDiv = document.createElement("div");
+    newLinkDiv.classList.add("vendor-link");
+    newLinkDiv.innerHTML = `
+        <input type="text" name="vendor_name[]" placeholder="Vendor Name" required />
+        <input type="url" name="vendor_url[]" placeholder="Vendor URL" required />
+        <button type="button" onclick="removeVendorLink(this)">Remove</button>
+    `;
+    
+    $("#new-vendor-button").before(newLinkDiv);
+}
+
+function removeVendorLink(button) {
+    const linkDiv = button.parentElement;
+    linkDiv.remove();
 }

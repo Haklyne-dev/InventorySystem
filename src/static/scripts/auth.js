@@ -16,7 +16,6 @@ if (currentPath === "/login" || currentPath === "/register") {
             window.location.href = "/";
         },
         error: function () {
-            document.body.classList.remove('loading');
         }
     });
 
@@ -99,7 +98,6 @@ else {
         xhrFields: { withCredentials: true },
         success: function (data) {
             emitAuthTrigger({ user: data });
-            document.body.classList.remove('loading');
         },
         error: function () {
             clearLocalCookie();

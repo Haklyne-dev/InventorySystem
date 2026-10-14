@@ -25,13 +25,27 @@ class PartEvent(PartEventCreate):
 # Parts
 
 
+class VendorLinkCreate(BaseModel):
+    name: str
+    url: str
+
+
+class VendorLink(VendorLinkCreate):
+    id: int
+    part_id: int
+
+    class Config:
+        from_attributes = True
+
+
 class PartCreate(BaseModel):
     name: str
     quantity: int = 0
     location: Optional[str] = None
     category: Optional[str] = None
     description: Optional[str] = None
-    min_quantity: int = 0
+    part_number: Optional[str] = None
+    vendor_links: list[VendorLinkCreate] = []
 
 
 class PartUpdate(BaseModel):
@@ -40,11 +54,14 @@ class PartUpdate(BaseModel):
     category: Optional[str] = None
     description: Optional[str] = None
     min_quantity: Optional[int] = None
+    part_number: Optional[str] = None
+    vendor_links: list[VendorLinkCreate] = []
 
 
 class Part(PartCreate):
     id: int
     history: list[PartEvent] = []
+    vendor_links: list[VendorLink] = []
 
     class Config:
         from_attributes = True
