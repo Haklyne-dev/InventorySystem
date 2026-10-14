@@ -13,9 +13,9 @@ $response = Read-Host "Do you want to proceed? (y/N)"
         }
 
 Write-Host "Uninstalling $AppDir..."
-rm -r "$AppDir"
+Remove-Item -Path "$AppDir" -Recurse -Force
 
 Write-Host "Uninstalling Launcher[$BinDir/InventorySystem.cmd]..."
-rm -r "$BinDir/InventorySystem.cmd"
+Remove-Item -Path "$BinDir/InventorySystem.cmd" -Force
 
 Write-Host "Finished uninstalling InventorySystem"
