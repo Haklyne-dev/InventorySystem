@@ -7,7 +7,7 @@ BIN_DIR="$HOME/.local/bin"
 echo "Warning: This will uninstall all aplication files"
 echo "It will NOT delete the database, all data is preserved"
 
-read -p "Do you want to proceed? (y/N)" -n 1 -r
+read -p "Do you want to proceed? (y/N): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             echo "Aborted."

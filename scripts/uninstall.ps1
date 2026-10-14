@@ -14,7 +14,7 @@ $Launcher = "$BinDir\InventorySystem.cmd"
 Write-Host "Warning: This will uninstall all application files."
 Write-Host "It will NOT delete the database; all data is preserved."
 
-$response = Read-Host "Do you want to proceed? (y/N)"
+$response = Read-Host "Do you want to proceed? (y/N): "
 if ($response -ne 'y' -and$response -ne 'Y') {
     Write-Host "Aborted." -ForegroundColor Red
     exit 1
