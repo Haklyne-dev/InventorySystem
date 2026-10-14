@@ -4,6 +4,9 @@ $RepoUrl = "https://github.com/Haklyne-dev/InventorySystem.git"
 $AppDir  = "$env:LOCALAPPDATA\InventorySystem"
 $BinDir  = "$env:LOCALAPPDATA\Microsoft\WindowsApps"
 
+Write-Host "$AppDir"
+Write-Host "$BinDir"
+
 New-Item -ItemType Directory -Force -Path $AppDir | Out-Null
 
 Write-Host "Pulling latest version..."
